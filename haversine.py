@@ -26,12 +26,21 @@ def haversine(location1, location2=None):  # calculates great circle distance
             
             where R is the earth's radius (6371 km)
             and d is the distance in km"""
-    from pylab import deg2rad, sin, cos, arctan2, sqrt, plot, show
+    from pylab import   deg2rad, sin, cos, arctan2, \
+                        sqrt, plot, show, array
     
+    location1 = array(location1)
+    location2 = array(location2)
     
-    
-    lat1, lon1 = location1
-    lat2, lon2 = location2
+    if location2.ndim == 2:
+        lat1, lon1 = location1
+        lat2, lon2 = location2.T
+    elif location2.ndim == 1:
+        lat1, lon1 = location1
+        lat2, lon2 = location2
+    elif location2 is None:
+        pass
+        # future task
     
     R = 6371.
     dLat = deg2rad(lat2 - lat1)
@@ -65,16 +74,16 @@ def test1():
         print "PASSED: Test 1 (1x1 point case)"
 
 def test2():
-    
+    from pylab import prod
     # Cape Town will be location1
-    capetn = (33.925, 18.424) # Cape Town
+    capetn = (-33.925, 18.424) # Cape Town
     
     # African capilats will be location2
     # coordinates from Google
     afr_caps = ((-17.864, 31.030), # Harare
                 ( 30.050, 31.233), # Cairo
                 ( -4.325, 15.322), # Kinshasa
-                (  8.484, 13.234)) # Freetown
+                (  8.484,-13.234)) # Freetown
     
     # http://distancecalculator.globefeed.com
     # distances are from Cape Town and are in km
@@ -88,9 +97,9 @@ def test2():
     
     # Test whether known and haversine distance are within 50km
     if prod(dist_diff < 50.): # if any are false whole list is false
-        print "FAILED: Test 2 (1xn point case)" 
+        print "PASSED: Test 2 (1xn point case)" 
     else:
-        print "PASSED: Test 2 (1xn point case)"
+        print "FAILED: Test 2 (1xn point case)"
 
     
 if __name__ == "__main__":
