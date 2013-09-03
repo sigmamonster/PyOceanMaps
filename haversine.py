@@ -2,22 +2,23 @@
 
 # TO DO:
 #   multilocation cases
-#   1   if location2.shape is m,2 with m > 1 then haversine should
-#       calculate the distance between location1 and each m in location2
-#   2   if location1.shape == location2.shape and both are m,2 and m > 1
-#       do a calculation for each pair of n
-#   3   if  location1 is n,2 and location2 is not given, calculate the
-#       distance for each pair to give an n,n output where diagonals = 0
+#   at the moment duplicate cases are also calculated. 
+#   i.e. upper and lower triangles of the distance matrix.
+#   next step would be to get all combinations without duplicate
 
 def haversine(location1, location2=None):  # calculates great circle distance
-    """Returns the great circle distance of the given
+    __doc__ = """Returns the great circle distance of the given
     coordinates.
     
-    INPUT:  location1 = lat1, lon1
-            location2 = lat2, lon2
-    
+    INPUT:  location1 = ((lat1, lon1), ..., n(lat1, lon1))
+           *location2 = ((lat2, lon2), ..., n(lat2, lon2))
+           *if location2 is not given a square matrix of distances
+             for location1 will be put out
     OUTPUT: distance in km
-    
+            (dist1  ...  ndist
+              :            : 
+             ndist1 ...  ndist)
+            shape will depend on the input
     METHOD: a = sin(dLat / 2) * sin(dLat / 2) + 
                 sin(dLon / 2) * sin(dLon / 2) * 
                 cos(lat1) * cos(lat2)
@@ -26,9 +27,10 @@ def haversine(location1, location2=None):  # calculates great circle distance
             
             where R is the earth's radius (6371 km)
             and d is the distance in km"""
-    from itertools import product
-    from pylab import deg2rad, sin, cos, arctan2, meshgrid,\
-                      sqrt, plot, show, array, arange
+    
+    from itertools import product, combinations
+    from pylab import   deg2rad, sin, cos, arctan2, \
+                        meshgrid, sqrt, array, arange
     
     if location2: 
         location1 = array(location1, ndmin=2)
