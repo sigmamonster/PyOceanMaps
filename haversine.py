@@ -26,59 +26,46 @@ def haversine(location1, location2=None):  # calculates great circle distance
             
             where R is the earth's radius (6371 km)
             and d is the distance in km"""
-    from pylab import   deg2rad, sin, cos, arctan2, meshgrid,\
-                        sqrt, plot, show, array, arange
+    from itertools import product
+    from pylab import deg2rad, sin, cos, arctan2, meshgrid,\
+                      sqrt, plot, show, array, arange
     
-    location1 = array(location1)
-    
-    if location2:
-        location2 = array(location2)
-        
-        if location2.ndim == 2:
-            lat1, lon1 = location1
-            lat2, lon2 = location2.T
-            
-        elif location2.ndim == 1:
-            lat1, lon1 = location1
-            lat2, lon2 = location2
-    
+    if location2: 
+        location1 = array(location1, ndmin=2)
+        location2 = array(location2, ndmin=2)
     elif location2 is None:
-        # output for location1 1xn situation
-        from itertools import combinations
-        
-        # getting all possible combinations in n,2 matrix
-        ind_list = arange(len(location1))
-        ind_list = array( list( combinations(ind_list, 2)))
-        
-        # using combination inds to get lats and lons
-        lat1, lon1 = location1[ind_list[:,0]].T
-        lat2, lon2 = location1[ind_list[:,1]].T
-        
-    else:
-        raise InputDimensionError('Illegal input dimensions. Check help for legal options')
+        location1 = array(location1, ndmin=2)
+        location2 = location1.copy()
     
-    # SETTING UP VARIABLES FOR HAVERSINE
+    # get all combinations using indicies
+    ind1 = arange(location1.shape[0])
+    ind2 = arange(location2.shape[0])
+    ind  = array(list(product(ind1, ind2)))
+    
+    # using combination inds to get lats and lons
+    lat1, lon1 = location1[ind[:,0]].T
+    lat2, lon2 = location2[ind[:,1]].T
+    
+    # setting up variables for haversine
     R = 6371.
     dLat = deg2rad(lat2 - lat1)
     dLon = deg2rad(lon2 - lon1)
     lat1 = deg2rad(lat1)
     lat2 = deg2rad(lat2)
     
-    # HAVERSINE FORMULA
+    # haversine formula
     a = sin(dLat / 2) * sin(dLat / 2) + \
         sin(dLon / 2) * sin(dLon / 2) * \
         cos(lat1) * cos(lat2)
     c = 2 * arctan2(sqrt(a), sqrt(1 - a))
     d = R * c
     
-    # make output square if there is no location2
-    if location2 is None:
-        from scipy.spatial.distance import squareform
-        from pylab import around
-        d = squareform(d)
+    # reshape accodring to the input
+    D = d.reshape(location1.shape[0], location2.shape[0])
     
-    return d
+    return D
 
+def test1():
     """Tests the output of the function with two points using Joburg
     amd Cape Town as the points. """
 
