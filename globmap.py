@@ -1,6 +1,15 @@
 #! /bin/python
 # marble global map for selection
 
+# TO DO
+# Scroll increases or decreases size of box by 1 deg (via corner)
+# Middle click changes corner
+# Double right click clears
+# Double left click rounds and confirms
+
+# seperate click and key events first
+# functions should be seperate 
+
 from pylab import *
 global rect 
 rcParams['font.size'] = 8
@@ -19,6 +28,13 @@ xy = xy()
 def onselect(eclick, erelease):
     xy.y[0], xy.y[1] = sort([erelease.ydata, eclick.ydata])
     xy.x[0], xy.x[1] = sort([erelease.xdata, eclick.xdata])
+    
+    sml_x = diff(xy.x) < 1.
+    sml_y = diff(xy.y) < 1.
+    
+    if sml_x | sml_y:
+        reset_fig(None)
+        return
     
     draw_selection()
     
@@ -55,7 +71,14 @@ def remove_rect(even):
         pass
 
 def reset_fig(event):
-    if event.key in ['R','r']:
+    if event is None:
+        xy.__init__()
+        gca().set_ylim(-90, 90)
+        gca().set_xlim(-180,180)
+        
+        remove_rect(None)
+    elif (event.key in ['R','r']):
+        xy.__init__()
         gca().set_ylim(-90, 90)
         gca().set_xlim(-180,180)
         
@@ -82,11 +105,12 @@ def adjust_lims(event):
     elif event.key == 'down':
         xy.y[i] = around(xy.y[i]) - xy.adjuster
     
-    gca().findobj(matplotlib.lines.Line2D)[-1].remove()
-    plot(xy.x[i], xy.y[i],'oy',mew=0)
-    
-    remove_rect(None)
-    draw_selection()
+    if event.key in [' ', 'shift', 'right', 'left', 'up', 'down']:
+        gca().findobj(matplotlib.lines.Line2D)[-1].remove()
+        plot(xy.x[i], xy.y[i],'oy',mew=0)
+        
+        remove_rect(None)
+        draw_selection()
 
 def toggle(event):
     if event.button==3 and toggle.RS.active:
@@ -109,11 +133,6 @@ def globmap(**kwargs):
                 urcrnrlon= 180, urcrnrlat= 90,
                 resolution='c')
     m.bluemarble(scale=.1)
-
-    parallels = [-60, -30,0,30, 60]
-    meridians = [-120,-60,0,60,120]   
-    m.drawparallels(parallels,color='k',labels=[1,0,0,1],linewidth=1)
-    m.drawmeridians(meridians,color='k',labels=[1,0,0,1],linewidth=1)
     
     fig.subplots_adjust(left=0.06, right=0.67)
     instr = kwargs.get("instructions","")
